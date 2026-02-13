@@ -7,7 +7,11 @@
 
 import CoreData
 
-public final class PersistentStore {
+public protocol PersistentStoreProtocol {
+    var container: NSPersistentContainer { get }
+}
+
+public final class PersistentStore: PersistentStoreProtocol {
 
     public let container: NSPersistentContainer
 

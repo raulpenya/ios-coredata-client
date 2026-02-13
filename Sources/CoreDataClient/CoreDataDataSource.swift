@@ -18,9 +18,9 @@ public protocol CoreDataProtocol {
 }
 
 public final class CoreDataDataSource: CoreDataProtocol {
-    private let persistentStore: PersistentStore
+    private let persistentStore: PersistentStoreProtocol
     
-    public init(persistentStore: PersistentStore) {
+    public init(persistentStore: PersistentStoreProtocol) {
         self.persistentStore = persistentStore
     }
     
@@ -66,7 +66,7 @@ extension CoreDataDataSource {
         case is FetchRequest<Request.Response>:
             return .fetchFailed(error)
         case is InsertRequest<Request.Response>:
-            return .saveFailed(error)
+            return .insertFailed(error)
         case is DeleteRequest:
             return .deleteFailed(error)
         default:

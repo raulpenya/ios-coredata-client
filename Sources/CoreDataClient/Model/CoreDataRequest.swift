@@ -13,9 +13,9 @@ public protocol CoreDataRequestProtocol {
 }
 
 /// FetchRequest takes both an NSFetchRequest and a transform because it cleanly separates persistence-level query specification (what to fetch and how Core Data executes it) from mapping logic (how raw NSManagedObject instances are projected into the caller’s desired return type), preserving query reusability and keeping data transformation outside the persistence infrastructure.
-public struct FetchRequest<Q>: CoreDataRequestProtocol {
-    let request: NSFetchRequest<NSManagedObject>
-    let transform: ([NSManagedObject]) throws -> Q
+public struct FetchRequest<T: NSManagedObject, Q>: CoreDataRequestProtocol {
+    let request: NSFetchRequest<T>
+    let transform: ([T]) throws -> Q
 
     public func execute(in context: NSManagedObjectContext) throws -> Q {
         let objects = try context.fetch(request)

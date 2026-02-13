@@ -7,7 +7,7 @@
 
 public enum CoreDataError: Error {
     case fetchFailed(Error)
-    case saveFailed(Error)
+    case insertFailed(Error)
     case deleteFailed(Error)
     case unknown(Error)
 }
