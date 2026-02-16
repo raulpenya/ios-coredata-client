@@ -33,7 +33,7 @@ public final class CoreDataDataSource: CoreDataProtocol {
                 try request.execute(in: context)
             }
         } catch {
-            throw mapError(error, for: request)
+            throw request.mapError(error)
         }
     }
     
@@ -48,29 +48,10 @@ public final class CoreDataDataSource: CoreDataProtocol {
                     continuation.resume(returning: result)
                 } catch {
                     continuation.resume(
-                        throwing: self.mapError(error, for: request)
+                        throwing: request.mapError(error)
                     )
                 }
             }
-        }
-    }
-}
-
-extension CoreDataDataSource {
-    private func mapError<Request: CoreDataRequestProtocol>(
-        _ error: Error,
-        for request: Request
-    ) -> CoreDataError {
-        
-        switch request {
-        case is FetchRequest<Request.Response>:
-            return .fetchFailed(error)
-        case is InsertRequest<Request.Response>:
-            return .insertFailed(error)
-        case is DeleteRequest:
-            return .deleteFailed(error)
-        default:
-            return .unknown(error)
         }
     }
 }

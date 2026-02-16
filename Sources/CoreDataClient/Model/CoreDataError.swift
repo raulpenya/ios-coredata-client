@@ -9,5 +9,6 @@ public enum CoreDataError: Error {
     case fetchFailed(Error)
     case insertFailed(Error)
     case deleteFailed(Error)
+    case batchDeleteFailed(Error)
     case unknown(Error)
 }
