@@ -50,10 +50,20 @@ final class MockPersistentStore: PersistentStoreProtocol {
         return model
     }
     
-    func insertPerson(person: Person) {
+    func insertPerson(person: Person) -> PersonLocalEntity {
         let context = container.viewContext
-        _ = try! Person.persons.first!.insert(into: context)
+        let result = try! Person.persons.first!.insert(into: context)
         try! context.save()
+        return result
+    }
+    
+    func insertPersons(persons: [Person]) -> [PersonLocalEntity] {
+        let context = container.viewContext
+        let result = persons.compactMap {
+            try! $0.insert(into: context)
+        }
+        try! context.save()
+        return result
     }
     
     func insertPersonWithNilName(person: Person) {

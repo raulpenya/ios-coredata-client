@@ -19,6 +19,12 @@ extension PersonLocalEntity {
         fetchRequest.predicate = NSPredicate(format: "email == %@", email)
         return fetchRequest
     }
+    
+    @nonobjc public class func fetchRequest(with emails: [String]) -> NSFetchRequest<PersonLocalEntity> {
+        let fetchRequest: NSFetchRequest<PersonLocalEntity> = PersonLocalEntity.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "email IN %@", emails)
+        return fetchRequest
+    }
 
     @NSManaged public var name: String?
     @NSManaged public var email: String?
@@ -34,7 +40,7 @@ extension PersonLocalEntity {
 }
 
 extension Person {
-    func insert(into context: NSManagedObjectContext) throws -> Person {
+    func insert(into context: NSManagedObjectContext) throws -> PersonLocalEntity {
         let fetchRequest: NSFetchRequest<PersonLocalEntity> = PersonLocalEntity.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "email == %@", email)
         let result = try context.fetch(fetchRequest)
@@ -42,7 +48,7 @@ extension Person {
             let entity = PersonLocalEntity(context: context)
             entity.name = name
             entity.email = email
-            return try entity.transformToDomain()
+            return entity
         } else {
             throw NSError(domain: "Person already exists error", code: 0, userInfo: nil)
         }
