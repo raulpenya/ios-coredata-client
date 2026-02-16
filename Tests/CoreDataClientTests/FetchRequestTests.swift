@@ -13,10 +13,10 @@ final class FetchRequestTests: XCTestCase {
     func test_fetchrequest_success() async throws {
         // Given
         let mock = MockPersistentStore()
-        // POPULATE
+        let person = Person.persons.first!
+        mock.insertPerson(person: person)
         let datasource = CoreDataDataSource(persistentStore: mock)
-        let email = Person.persons.first!.email
-        let request = FetchRequest<PersonLocalEntity, Person?>(request: PersonLocalEntity.fetchRequest(with: email)) { result in
+        let request = FetchRequest<PersonLocalEntity, Person?>(request: PersonLocalEntity.fetchRequest(with: person.email)) { result in
             try result.compactMap { try $0.transformToDomain() }.first ?? nil
         }
         
@@ -25,7 +25,7 @@ final class FetchRequestTests: XCTestCase {
         
         // Then
         XCTAssertNotNil(result)
-        XCTAssertEqual(result!.email, email)
+        XCTAssertEqual(result!.email, person.email)
     }
     
     func test_fetchrequest_empty() async throws {
@@ -47,21 +47,27 @@ final class FetchRequestTests: XCTestCase {
     func test_fetchrequest_transform_error() async throws {
         // Given
         let mock = MockPersistentStore()
-        // POPULATE wrong
+        let person = Person.persons.first!
+        mock.insertPersonWithNilName(person: person)
         let datasource = CoreDataDataSource(persistentStore: mock)
-        let email = Person.persons.first!.email
-        let request = FetchRequest<PersonLocalEntity, Person?>(request: PersonLocalEntity.fetchRequest(with: email)) { result in
+        let request = FetchRequest<PersonLocalEntity, Person?>(request: PersonLocalEntity.fetchRequest(with: person.email)) { result in
             try result.compactMap { try $0.transformToDomain() }.first ?? nil
         }
         
         // When
-        do {
+        await XCTAssertThrowsErrorAsync {
             _ = try await datasource.performBackground(request)
+        }
+    }
+    
+    func XCTAssertThrowsErrorAsync(
+        _ expression: @escaping () async throws -> Void
+    ) async {
+        do {
+            try await expression()
             XCTFail("Expected error")
         } catch {
-            // Then
-            XCTAssertNotNil(error)
-            // "Person already exists"
+            // success
         }
     }
 }
