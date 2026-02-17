@@ -70,6 +70,19 @@ public struct BatchDeleteRequest: CoreDataRequestProtocol, @unchecked Sendable {
     let request: NSFetchRequest<NSFetchRequestResult>
 
     public func execute(in context: NSManagedObjectContext) throws {
+        guard
+            context.persistentStoreCoordinator?
+                .persistentStores
+                .first?
+                .type == NSSQLiteStoreType
+        else {
+            // Fallback delete
+            let objects = try context.fetch(request as! NSFetchRequest<NSManagedObject>)
+            objects.forEach { context.delete($0) }
+            try context.save()
+            return
+        }
+        
         let deleteRequest = NSBatchDeleteRequest(fetchRequest: request)
         deleteRequest.resultType = .resultTypeObjectIDs
         
