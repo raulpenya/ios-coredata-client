@@ -30,9 +30,9 @@ final class InsertRequestTests: XCTestCase {
     func test_insertrequest_exists_error() async throws {
         // Given
         let mock = MockPersistentStore()
-        // POPULATE
-        let datasource = CoreDataDataSource(persistentStore: mock)
         let person = Person.persons.first!
+        _ = mock.insertPerson(person: person)
+        let datasource = CoreDataDataSource(persistentStore: mock)
         let request = InsertRequest<Person> { context in
             try person.insert(into: context)
         }
@@ -41,10 +41,11 @@ final class InsertRequestTests: XCTestCase {
         do {
             _ = try await datasource.performBackground(request)
             XCTFail("Expected error")
-        } catch {
+        } catch CoreDataError.insertFailed {
             // Then
-            XCTAssertNotNil(error)
-            // "Person already exists"
+//            XCTAssertNotNil(error)
+        } catch {
+            XCTFail("Unexpected error type")
         }
     }
 }
