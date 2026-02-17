@@ -14,7 +14,7 @@ final class FetchRequestTests: XCTestCase {
         // Given
         let mock = MockPersistentStore()
         let person = Person.persons.first!
-        mock.insertPerson(person: person)
+        _ = mock.insertPerson(person: person)
         let datasource = CoreDataDataSource(persistentStore: mock)
         let request = FetchRequest<PersonLocalEntity, Person?>(request: PersonLocalEntity.fetchRequest(with: person.email)) { result in
             try result.compactMap { try $0.transformToDomain() }.first ?? nil
