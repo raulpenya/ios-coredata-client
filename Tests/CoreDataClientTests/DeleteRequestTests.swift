@@ -13,40 +13,19 @@ final class DeleteRequestTests: XCTestCase {
     func test_deleterequest_success() async throws {
         // Given
         let mock = MockPersistentStore()
-        // POPULATE
+        let person = Person.persons.first!
+        let objectID = mock.insertPersonForObjectID(person: person)
         let datasource = CoreDataDataSource(persistentStore: mock)
-        let email = Person.persons.first!.email
-        
-        // fetch object without transform it, just for getting the NSManagedObjectID
-        
-        let requestObjectID = FetchRequest<PersonLocalEntity, NSManagedObjectID>(request: PersonLocalEntity.fetchRequest(with: email)) { result in
-            result.first!.objectID
-        }
-        let result = try await datasource.performBackground(requestObjectID)
-        let deleteRequest = DeleteRequest(objectID: result)
+        let request = DeleteRequest(objectID: objectID)
         
         // When
-        try await datasource.performBackground(deleteRequest)
+        try await datasource.performBackground(request)
         
         // Then
-        // what to check ??
-//        XCTAssertNotNil(result)
-//        XCTAssertEqual(result!.email, email)
-    }
-    
-    func test_deleterequest_notfound() async throws {
-//        // Given
-//        let mock = MockPersistentStore()
-//        let datasource = CoreDataDataSource(persistentStore: mock)
-//        let email = Person.persons.first!.email
-//        let request = FetchRequest<PersonLocalEntity, Person?>(request: PersonLocalEntity.fetchRequest(with: email)) { result in
-//            try result.compactMap { try $0.transformToDomain() }.first ?? nil
-//        }
-//        
-//        // When
-//        let result = try await datasource.performBackground(request)
-//        
-//        // Then
-//        XCTAssertNil(result)
+        let verifyRequest = FetchRequest<PersonLocalEntity, Person?>(request: PersonLocalEntity.fetchRequest(with: person.email)) { result in
+            try result.compactMap { try $0.transformToDomain() }.first ?? nil
+        }
+        let result = try await datasource.performBackground(verifyRequest)
+        XCTAssertNil(result)
     }
 }
