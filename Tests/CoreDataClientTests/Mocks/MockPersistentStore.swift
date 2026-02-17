@@ -11,14 +11,14 @@ import CoreData
 final class MockPersistentStore: PersistentStoreProtocol {
     let container: NSPersistentContainer
     
-    init() {
+    init(sqlite: Bool = false) {
         let model = Self.makeModel()
         container = NSPersistentContainer(
             name: "TestModel",
             managedObjectModel: model
         )
         let description = NSPersistentStoreDescription()
-        description.type = NSInMemoryStoreType
+        description.type = sqlite ? NSSQLiteStoreType : NSInMemoryStoreType
         container.persistentStoreDescriptions = [description]
         container.loadPersistentStores { _, error in
             if let error {
@@ -50,14 +50,23 @@ final class MockPersistentStore: PersistentStoreProtocol {
         return model
     }
     
-    func insertPerson(person: Person) -> PersonLocalEntity {
+    func insertPerson(person: Person) -> Person {
         let context = container.viewContext
         let result = try! Person.persons.first!.insert(into: context)
         try! context.save()
         return result
     }
     
-    func insertPersons(persons: [Person]) -> [PersonLocalEntity] {
+    func insertPersonForObjectID(person: Person) -> NSManagedObjectID {
+        let context = container.viewContext
+        let entity = PersonLocalEntity(context: context)
+        entity.name = nil
+        entity.email = person.email
+        try! context.save()
+        return entity.objectID
+    }
+    
+    func insertPersons(persons: [Person]) -> [Person] {
         let context = container.viewContext
         let result = persons.compactMap {
             try! $0.insert(into: context)
