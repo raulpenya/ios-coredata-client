@@ -7,7 +7,17 @@
 
 import SwiftUI
 
-struct ContentView: View {
+struct ExampleView: View {
+        
+    @Environment(\.factory) private var factory
+    @StateObject private var viewModel: ExampleViewModel
+    
+    init(factory: AppFactory) {
+        _viewModel = StateObject(
+            wrappedValue: factory.makeRootViewModel()
+        )
+    }
+
     var body: some View {
         VStack {
             Image(systemName: "globe")
@@ -20,5 +30,5 @@ struct ContentView: View {
 }
 
 #Preview {
-    ContentView()
+    ExampleView()
 }
