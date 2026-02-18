@@ -51,3 +51,14 @@ extension AppFactory {
         }
     }
 }
+
+extension CoreDataDataSource {
+    func addDefaultPersons() async throws {
+        let persons = Person.persons
+        let context = persistentStore.container.viewContext
+        _ = try persons.compactMap {
+            try $0.insert(into: context)
+        }
+        try context.save()
+    }
+}

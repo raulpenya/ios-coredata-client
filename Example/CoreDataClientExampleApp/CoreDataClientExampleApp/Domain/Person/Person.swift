@@ -14,3 +14,11 @@ struct Person: Equatable {
         self.email = email
     }
 }
+
+extension Person {
+    static let persons: [Person] = [
+        Person(name: "Shyam", email: "shyamjaiswal@gmail.com"),
+        Person(name: "Bob", email: "bob32@gmail.com"),
+        Person(name: "Jai", email: "jai87@gmail.com")
+    ]
+}
