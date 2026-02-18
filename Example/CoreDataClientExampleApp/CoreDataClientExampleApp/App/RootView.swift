@@ -48,7 +48,11 @@ struct RootView: View {
     
     private func bootstrap() async {
         let dataSource = await AppFactory.makeCoreDataClient()
-        try! await dataSource.addDefaultPersons()
+        do {
+            try await dataSource.addDefaultPersons()
+        } catch {
+            print("addDefaultPersons :: error :: ", error)
+        }
         let factory = AppFactory(dataSource: dataSource)
         let authController = FakeAuthController()
         let root = RootCoordinator(
