@@ -17,6 +17,11 @@ public protocol CoreDataRequestProtocol: Sendable {
 public struct FetchRequest<T: NSManagedObject, Q>: CoreDataRequestProtocol, @unchecked Sendable {
     public let request: NSFetchRequest<T>
     public let transform: ([T]) throws -> Q
+    
+    public init(request: NSFetchRequest<T>, transform: @escaping ([T]) throws -> Q) {
+        self.request = request
+        self.transform = transform
+    }
 
     public func execute(in context: NSManagedObjectContext) throws -> Q {
         let objects = try context.fetch(request)
@@ -33,6 +38,10 @@ public struct FetchRequest<T: NSManagedObject, Q>: CoreDataRequestProtocol, @unc
 public struct InsertRequest<Q>: CoreDataRequestProtocol, @unchecked Sendable {
 
     public let insert: (NSManagedObjectContext) throws -> Q
+    
+    public init(insert: @escaping (NSManagedObjectContext) throws -> Q) {
+        self.insert = insert
+    }
 
     public func execute(in context: NSManagedObjectContext) throws -> Q {
         let result = try insert(context)
@@ -53,6 +62,10 @@ public struct DeleteRequest: CoreDataRequestProtocol, @unchecked Sendable {
     public typealias Response = Void
     public let objectID: NSManagedObjectID
     
+    public init(objectID: NSManagedObjectID) {
+        self.objectID = objectID
+    }
+    
     public func execute(in context: NSManagedObjectContext) throws {
         let object = try context.existingObject(with: objectID)
         context.delete(object)
@@ -68,6 +81,10 @@ public struct BatchDeleteRequest: CoreDataRequestProtocol, @unchecked Sendable {
     
     public typealias Response = Void
     public let request: NSFetchRequest<NSFetchRequestResult>
+    
+    public init(request: NSFetchRequest<NSFetchRequestResult>) {
+        self.request = request
+    }
 
     public func execute(in context: NSManagedObjectContext) throws {
         guard
