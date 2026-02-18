@@ -4,9 +4,17 @@
 //
 //  Created by Raul Peña on 11/2/26.
 //
+
 import Foundation
+import CoreDataClient
 
 @MainActor
-final class ExampleViewModel: ObservableObject {
-    
+@Observable
+final class ExampleViewModel {
+
+    private let dataSource: CoreDataDataSource
+
+    init(dataSource: CoreDataDataSource) {
+        self.dataSource = dataSource
+    }
 }
