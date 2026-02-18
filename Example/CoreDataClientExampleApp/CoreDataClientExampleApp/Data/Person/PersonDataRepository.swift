@@ -41,7 +41,13 @@ class PersonDataRepository: PersonRepository {
     }
     
     func removePerson(_ requestValues: RemovePersonRequestValues) async throws {
-        <#code#>
+        let email = requestValues.email
+        let fetchRequest = PersonLocalEntity.fetchRequest(with: email)
+        let result = try dataSource.persistentStore.container.viewContext.fetch(fetchRequest)
+        guard !result.isEmpty,
+              let person = result.first else { return }
+        let request = DeleteRequest(objectID: person.objectID)
+        return try await dataSource.performBackground(request)
     }
     
     func removePersons(_ requestValues: RemovePersonsRequestValues) async throws {
