@@ -15,8 +15,8 @@ public protocol CoreDataRequestProtocol: Sendable {
 
 /// FetchRequest takes both an NSFetchRequest and a transform because it cleanly separates persistence-level query specification (what to fetch and how Core Data executes it) from mapping logic (how raw NSManagedObject instances are projected into the caller’s desired return type), preserving query reusability and keeping data transformation outside the persistence infrastructure.
 public struct FetchRequest<T: NSManagedObject, Q>: CoreDataRequestProtocol, @unchecked Sendable {
-    let request: NSFetchRequest<T>
-    let transform: ([T]) throws -> Q
+    public let request: NSFetchRequest<T>
+    public let transform: ([T]) throws -> Q
 
     public func execute(in context: NSManagedObjectContext) throws -> Q {
         let objects = try context.fetch(request)
@@ -32,7 +32,7 @@ public struct FetchRequest<T: NSManagedObject, Q>: CoreDataRequestProtocol, @unc
 /// InsertRequest uses a closure because mutations are inherently imperative and workflow-driven, whereas FetchRequest preserves a declarative NSFetchRequest to maintain query composability, inspectability, and strict separation between read and write semantics.
 public struct InsertRequest<Q>: CoreDataRequestProtocol, @unchecked Sendable {
 
-    let insert: (NSManagedObjectContext) throws -> Q
+    public let insert: (NSManagedObjectContext) throws -> Q
 
     public func execute(in context: NSManagedObjectContext) throws -> Q {
         let result = try insert(context)
@@ -49,9 +49,9 @@ public struct InsertRequest<Q>: CoreDataRequestProtocol, @unchecked Sendable {
 
 /// DeleteRequest takes only an NSManagedObjectID because deletion is an identity-based command, and NSManagedObjectID is the only thread-safe, context-independent, stable reference that uniquely identifies a Core Data object across contexts.
 public struct DeleteRequest: CoreDataRequestProtocol, @unchecked Sendable {
-    public typealias Response = Void
     
-    let objectID: NSManagedObjectID
+    public typealias Response = Void
+    public let objectID: NSManagedObjectID
     
     public func execute(in context: NSManagedObjectContext) throws {
         let object = try context.existingObject(with: objectID)
@@ -65,9 +65,9 @@ public struct DeleteRequest: CoreDataRequestProtocol, @unchecked Sendable {
 }
 
 public struct BatchDeleteRequest: CoreDataRequestProtocol, @unchecked Sendable {
+    
     public typealias Response = Void
-
-    let request: NSFetchRequest<NSFetchRequestResult>
+    public let request: NSFetchRequest<NSFetchRequestResult>
 
     public func execute(in context: NSManagedObjectContext) throws {
         guard
