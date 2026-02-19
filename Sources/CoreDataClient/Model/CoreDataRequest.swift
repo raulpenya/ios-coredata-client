@@ -88,27 +88,57 @@ public struct BatchDeleteRequest: CoreDataRequestProtocol, @unchecked Sendable {
 
     public func execute(in context: NSManagedObjectContext) throws {
         guard
-            context.persistentStoreCoordinator?
+            let store = context.persistentStoreCoordinator?
                 .persistentStores
-                .first?
-                .type == NSSQLiteStoreType
+                .first,
+            store.type == NSSQLiteStoreType
         else {
-            // Fallback delete
-            let objects = try context.fetch(request as! NSFetchRequest<NSManagedObject>)
+            // Fallback for non-SQLite stores (e.g. in-memory)
+            guard let fetchRequest = request as? NSFetchRequest<NSManagedObject> else {
+                throw CoreDataError.batchDeleteFailed(
+                    NSError(
+                        domain: "BatchDeleteRequest",
+                        code: 0,
+                        userInfo: [
+                            NSLocalizedDescriptionKey:
+                                "Invalid fetch request type for fallback delete."
+                        ]
+                    )
+                )
+            }
+            
+            let objects = try context.fetch(fetchRequest)
             objects.forEach { context.delete($0) }
-            try context.save()
+            
+            if context.hasChanges {
+                try context.save()
+            }
+            
             return
         }
         
+        // SQLite optimized batch delete
         let deleteRequest = NSBatchDeleteRequest(fetchRequest: request)
         deleteRequest.resultType = .resultTypeObjectIDs
         
-        let result = try context.execute(deleteRequest) as? NSBatchDeleteResult
+        guard let result = try context.execute(deleteRequest) as? NSBatchDeleteResult else {
+            throw CoreDataError.batchDeleteFailed(
+                NSError(
+                    domain: "BatchDeleteRequest",
+                    code: 1,
+                    userInfo: [
+                        NSLocalizedDescriptionKey:
+                            "Failed to execute NSBatchDeleteRequest."
+                    ]
+                )
+            )
+        }
         
-        if let objectIDs = result?.result as? [NSManagedObjectID] {
+        if let objectIDs = result.result as? [NSManagedObjectID] {
             let changes: [AnyHashable: Any] = [
                 NSDeletedObjectsKey: objectIDs
             ]
+            
             NSManagedObjectContext.mergeChanges(
                 fromRemoteContextSave: changes,
                 into: [context]
