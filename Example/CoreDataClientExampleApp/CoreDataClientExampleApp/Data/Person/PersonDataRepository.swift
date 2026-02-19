@@ -15,15 +15,14 @@ class PersonDataRepository: PersonRepository {
         self.dataSource = dataSource
     }
     
-    func addPerson(_ requestValues: AddPersonRequestValues) async throws -> Person {
-        let person = requestValues.person
+    func add(person: Person) async throws -> Person {
         let request = InsertRequest<Person> { context in
             try person.insert(into: context)
         }
         return try await dataSource.performBackground(request)
     }
     
-    func getAllPersons(_ requestValues: GetAllPersonsRequestValues) async throws -> [Person] {
+    func getAll() async throws -> [Person] {
         let request = FetchRequest<PersonLocalEntity, [Person]>(
             request: PersonLocalEntity.fetchRequest()
         ) { result in
@@ -32,29 +31,22 @@ class PersonDataRepository: PersonRepository {
         return try await dataSource.performBackground(request)
     }
     
-    func getPerson(_ requestValues: GetPersonByEmailRequestValues) async throws -> Person? {
-        let email = requestValues.email
+    func get(byEmail email: String) async throws -> Person? {
         let request = FetchRequest<PersonLocalEntity, Person?>(request: PersonLocalEntity.fetchRequest(with: email)) { result in
             try result.compactMap { try $0.transformToDomain() }.first ?? nil
         }
         return try await dataSource.performBackground(request)
     }
     
-    func removePerson(_ requestValues: RemovePersonRequestValues) async throws {
-        let email = requestValues.email
-        let fetchRequest = PersonLocalEntity.fetchRequest(with: email)
-        let result = try dataSource.persistentStore.container.viewContext.fetch(fetchRequest)
-        guard !result.isEmpty,
-              let person = result.first else { return }
-        let request = DeleteRequest(objectID: person.objectID)
-        return try await dataSource.performBackground(request)
+    func remove(byEmail email: String) async throws {
+        let request = DeletePersonByEmailRequest(email: email)
+        try await dataSource.performBackground(request)
     }
     
-    func removePersons(_ requestValues: RemovePersonsRequestValues) async throws {
-        let emails = requestValues.emails
+    func remove(emails: [String]) async throws {
         let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "PersonLocalEntity")
         fetchRequest.predicate = NSPredicate(format: "email IN %@", emails)
         let request = BatchDeleteRequest(request: fetchRequest)
-        return try await dataSource.performBackground(request)
+        try await dataSource.performBackground(request)
     }
 }
