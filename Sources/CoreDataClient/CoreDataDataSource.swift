@@ -18,7 +18,7 @@ public protocol CoreDataProtocol {
 }
 
 public final class CoreDataDataSource: CoreDataProtocol {
-    public let persistentStore: PersistentStoreProtocol
+    private let persistentStore: PersistentStoreProtocol
     
     public init(persistentStore: PersistentStoreProtocol) {
         self.persistentStore = persistentStore
