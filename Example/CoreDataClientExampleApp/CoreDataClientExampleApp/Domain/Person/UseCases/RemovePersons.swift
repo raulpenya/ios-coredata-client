@@ -15,7 +15,7 @@ class RemovePersons: UseCase {
     }
     
     func execute(_ requestValues: RemovePersonsRequestValues) async throws {
-        try await personRepository.removePersons(requestValues)
+        try await personRepository.remove(emails: requestValues.emails)
     }
 }
 

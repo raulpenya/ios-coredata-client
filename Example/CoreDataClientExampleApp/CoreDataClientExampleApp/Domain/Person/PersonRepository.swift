@@ -5,10 +5,14 @@
 //  Created by Raul Peña on 18/2/26.
 //
 
+/// In strict Clean Architecture:
+/// - UseCases depend on repositories
+/// - Repositories should not depend on use case request objects
+
 protocol PersonRepository {
-    func addPerson(_ requestValues: AddPersonRequestValues) async throws -> Person
-    func getAllPersons(_ requestValues: GetAllPersonsRequestValues) async throws -> [Person]
-    func getPerson(_ requestValues: GetPersonByEmailRequestValues) async throws -> Person?
-    func removePerson(_ requestValues: RemovePersonRequestValues) async throws
-    func removePersons(_ requestValues: RemovePersonsRequestValues) async throws
+    func add(person: Person) async throws -> Person
+    func getAll() async throws -> [Person]
+    func get(byEmail email: String) async throws -> Person?
+    func remove(byEmail email: String) async throws
+    func remove(emails: [String]) async throws
 }

@@ -15,7 +15,7 @@ class GetPersonByEmail: UseCase {
     }
     
     func execute(_ requestValues: GetPersonByEmailRequestValues) async throws -> Person? {
-        try await personRepository.getPerson(requestValues)
+        try await personRepository.get(byEmail: requestValues.email)
     }
 }
 

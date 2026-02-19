@@ -15,7 +15,7 @@ class GetAllPersons: UseCase {
     }
     
     func execute(_ request: GetAllPersonsRequestValues) async throws -> [Person] {
-        try await personRepository.getAllPersons(request)
+        try await personRepository.getAll()
     }
 }
 

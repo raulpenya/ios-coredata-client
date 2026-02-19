@@ -15,7 +15,7 @@ class AddPerson: UseCase {
     }
     
     func execute(_ requestValues: AddPersonRequestValues) async throws -> Person {
-        return try await personRepository.addPerson(requestValues)
+        return try await personRepository.add(person: requestValues.person)
     }
 }
 
