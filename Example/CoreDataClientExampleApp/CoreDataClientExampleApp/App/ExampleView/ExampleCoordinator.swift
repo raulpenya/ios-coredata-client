@@ -18,14 +18,42 @@ import Foundation
 @MainActor
 @Observable
 final class ExampleCoordinator {
-
+    
+    enum Route: Hashable {
+        case addPerson
+    }
+    
+    var path: [Route] = []
+    
     private let appFactory: AppFactory
-
+    
     init(appFactory: AppFactory) {
         self.appFactory = appFactory
     }
-
+    
+    func goToAddPerson() {
+        path.append(.addPerson)
+    }
+    
     func makeViewModel() -> ExampleViewModel {
-        ExampleViewModel(dataSource: appFactory.dataSource)
+        let repository = PersonDataRepository(
+            dataSource: appFactory.dataSource
+        )
+        
+        let addPerson = AddPerson(personRepository: repository)
+        let getAllPersons = GetAllPersons(personRepository: repository)
+        let removePerson = RemovePerson(personRepository: repository)
+        let removePersons = RemovePersons(personRepository: repository)
+        
+        return ExampleViewModel(
+            addPerson: addPerson,
+            getAllPersons: getAllPersons,
+            removePerson: removePerson,
+            removePersons: removePersons
+        )
+    }
+    
+    func makeAddPersonView() -> AddPersonView {
+        AddPersonView(coordinator: self)
     }
 }
