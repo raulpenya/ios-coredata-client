@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SwiftUI
 
 /// Application flow controller.
 /// Responsible for deciding which top-level flow the app should display (example, login, or loading).
@@ -34,22 +35,23 @@ final class RootCoordinator {
         }
     }
     
-    private let appFactory: AppFactory
     private let authController: FakeAuthController
+    /// RootCoordinator owns child coordinators to stabilize feature lifecycles.
+    let exampleCoordinator: ExampleCoordinator // why?
     
     init(
         appFactory: AppFactory,
         authController: FakeAuthController
     ) {
-        self.appFactory = appFactory
         self.authController = authController
+        self.exampleCoordinator = ExampleCoordinator(appFactory: appFactory)
     }
     
     func start() {
         authController.start()
     }
     
-    func makeExampleCoordinator() -> ExampleCoordinator {
-        ExampleCoordinator(appFactory: appFactory)
+    func makeExampleView() -> ExampleView {
+        exampleCoordinator.makeExampleView()
     }
 }

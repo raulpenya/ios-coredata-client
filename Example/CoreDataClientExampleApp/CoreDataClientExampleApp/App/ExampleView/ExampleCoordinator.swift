@@ -14,6 +14,7 @@ import Foundation
 /// - Creates ExampleViewModel
 /// - Encapsulates feature-level dependency injection
 /// It does not manage root navigation—only feature composition.
+/// If the feature has its own navigation graph, it gets a coordinator.
 
 @MainActor
 @Observable
@@ -25,35 +26,35 @@ final class ExampleCoordinator {
     
     var path: [Route] = []
     
-    private let appFactory: AppFactory
+    private let repository: PersonRepository
+    /// Coordinators own ViewModels for root feature screens.
+    private let viewModel: ExampleViewModel
     
     init(appFactory: AppFactory) {
-        self.appFactory = appFactory
-    }
-    
-    func goToAddPerson() {
-        path.append(.addPerson)
-    }
-    
-    func makeViewModel() -> ExampleViewModel {
         let repository = PersonDataRepository(
             dataSource: appFactory.dataSource
         )
-        
-        let addPerson = AddPerson(personRepository: repository)
-        let getAllPersons = GetAllPersons(personRepository: repository)
-        let removePerson = RemovePerson(personRepository: repository)
-        let removePersons = RemovePersons(personRepository: repository)
-        
-        return ExampleViewModel(
-            addPerson: addPerson,
-            getAllPersons: getAllPersons,
-            removePerson: removePerson,
-            removePersons: removePersons
+        self.repository = repository
+        self.viewModel = ExampleViewModel(
+            repository: repository
+        )
+    }
+    
+    func makeExampleView() -> ExampleView {
+        ExampleView(
+            viewModel: viewModel, coordinator: self
         )
     }
     
     func makeAddPersonView() -> AddPersonView {
-        AddPersonView(coordinator: self)
+        AddPersonView(
+            viewModel: AddPersonViewModel(
+                addPerson: AddPerson(personRepository: repository)
+            )
+        )
+    }
+    
+    func goToAddPerson() {
+        path.append(.addPerson)
     }
 }

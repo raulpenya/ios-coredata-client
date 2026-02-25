@@ -5,19 +5,14 @@
 //  Created by Raul Peña on 9/2/26.
 //
 
+/// The list screen remains the source of truth.
+
 import SwiftUI
 
 struct ExampleView: View {
 
-    @State private var viewModel: ExampleViewModel
+    let viewModel: ExampleViewModel
     @Bindable var coordinator: ExampleCoordinator
-
-    init(coordinator: ExampleCoordinator) {
-        self.coordinator = coordinator
-        _viewModel = State(
-            wrappedValue: coordinator.makeViewModel()
-        )
-    }
 
     var body: some View {
         List {
@@ -42,26 +37,18 @@ struct ExampleView: View {
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 Button("Delete All") {
-                    Task {
-                        await viewModel.deleteAll()
-                    }
+                    Task { await viewModel.deleteAll() }
                 }
             }
-            
+
             ToolbarItem(placement: .topBarTrailing) {
                 Button("Add") {
                     coordinator.goToAddPerson()
                 }
             }
         }
-        .navigationDestination(for: ExampleCoordinator.Route.self) { route in
-            switch route {
-            case .addPerson:
-                coordinator.makeAddPersonView()
-            }
-        }
         .task {
-            await viewModel.loadPersons()
+            await viewModel.initialLoad()
         }
     }
 }

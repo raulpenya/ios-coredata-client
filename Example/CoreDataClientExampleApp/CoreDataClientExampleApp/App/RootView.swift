@@ -29,10 +29,21 @@ struct RootView: View {
                 case .loading:
                     ProgressView()
                 case .example:
-                    NavigationStack {
-                        ExampleView(
-                            coordinator: coordinator.makeExampleCoordinator()
+                    NavigationStack(
+                        path: Binding(
+                            get: { coordinator.exampleCoordinator.path },
+                            set: { coordinator.exampleCoordinator.path = $0 }
                         )
+                    ) {
+                        coordinator.exampleCoordinator.makeExampleView()
+                            .navigationDestination(
+                                for: ExampleCoordinator.Route.self
+                            ) { route in
+                                switch route {
+                                case .addPerson:
+                                    coordinator.exampleCoordinator.makeAddPersonView()
+                                }
+                            }
                     }
                 case .login:
                     Text("Login")
@@ -48,11 +59,6 @@ struct RootView: View {
     
     private func bootstrap() async {
         let dataSource = await AppFactory.makeCoreDataClient()
-        do {
-            try await dataSource.addDefaultPersons()
-        } catch {
-            print("addDefaultPersons :: error :: ", error)
-        }
         let factory = AppFactory(dataSource: dataSource)
         let authController = FakeAuthController()
         let root = RootCoordinator(

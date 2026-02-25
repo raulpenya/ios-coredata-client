@@ -10,31 +10,36 @@ import Foundation
 @MainActor
 @Observable
 final class ExampleViewModel {
-    
-    private let addPerson: AddPerson
-    private let getAllPersons: GetAllPersons
-    private let removePerson: RemovePerson
-    private let removePersons: RemovePersons
+    private let repository: PersonRepository
+    private var streamTask: Task<Void, Never>?
     
     var persons: [Person] = []
     var isLoading = false
     var errorMessage: String?
     
-    init(addPerson: AddPerson, getAllPersons: GetAllPersons, removePerson: RemovePerson, removePersons: RemovePersons) {
-        self.addPerson = addPerson
-        self.getAllPersons = getAllPersons
-        self.removePerson = removePerson
-        self.removePersons = removePersons
+    init(repository: PersonRepository) {
+        self.repository = repository
+        subscribe()
     }
     
-    func loadPersons() async {
+    private func subscribe() {
+        streamTask = Task { [weak self] in
+            guard let self else { return }
+            // Even though the class is @MainActor, the Task body is not guaranteed to execute on main actor unless you hop back explicitly.
+            for await persons in self.repository.personsStream {
+                await MainActor.run {
+                    self.persons = persons
+                }
+            }
+        }
+    }
+    
+    func initialLoad() async {
         isLoading = true
         defer { isLoading = false }
         
         do {
-            persons = try await getAllPersons.execute(
-                GetAllPersonsRequestValues()
-            )
+            persons = try await repository.getAll()
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -42,10 +47,7 @@ final class ExampleViewModel {
     
     func deletePerson(email: String) async {
         do {
-            try await removePerson.execute(
-                RemovePersonRequestValues(email: email)
-            )
-            await loadPersons()
+            try await repository.remove(byEmail: email)
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -53,13 +55,16 @@ final class ExampleViewModel {
     
     func deleteAll() async {
         do {
-            let emails = persons.map { $0.email }
-            try await removePersons.execute(
-                RemovePersonsRequestValues(emails: emails)
+            try await repository.remove(
+                emails: persons.map(\.email)
             )
-            persons.removeAll()
         } catch {
             errorMessage = error.localizedDescription
         }
+    }
+    
+    @MainActor
+    deinit {
+        streamTask?.cancel()
     }
 }

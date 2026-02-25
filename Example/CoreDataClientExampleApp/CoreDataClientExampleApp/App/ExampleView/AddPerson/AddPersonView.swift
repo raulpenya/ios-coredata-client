@@ -10,35 +10,25 @@ import SwiftUI
 struct AddPersonView: View {
 
     @Environment(\.dismiss) private var dismiss
+    @State private var viewModel: AddPersonViewModel
 
-    @State private var name = ""
-    @State private var email = ""
-
-    let coordinator: ExampleCoordinator
+    init(viewModel: AddPersonViewModel) {
+        _viewModel = State(wrappedValue: viewModel)
+    }
 
     var body: some View {
         Form {
-            TextField("Name", text: $name)
-            TextField("Email", text: $email)
+            TextField("Name", text: $viewModel.name)
+            TextField("Email", text: $viewModel.email)
 
             Button("Save") {
                 Task {
-                    await save()
+                    if await viewModel.save() {
+                        dismiss()
+                    }
                 }
             }
         }
         .navigationTitle("Add Person")
-    }
-
-    private func save() async {
-        let viewModel = coordinator.makeViewModel()
-
-        let person = Person(name: name, email: email)
-
-//        try? await viewModel.addPerson.execute(
-//            AddPersonRequestValues(person: person)
-//        )
-
-        dismiss()
     }
 }
