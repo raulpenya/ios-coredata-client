@@ -5,7 +5,7 @@ A lightweight, testable Core Data abstraction for iOS and macOS, built around as
 ## Installation
 
 ```swift
-.package(url: "https://github.com/yourname/core-data-client.git", from: "1.0.0")
+.package(url: "https://github.com/raulpenya/ios-coredata-client.git", from: "X.X.X")
 ```
 
 ## Overview
