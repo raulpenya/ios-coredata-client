@@ -11,15 +11,33 @@ import CoreDataClient
 class PersonDataRepository: PersonRepository {
     private let dataSource: CoreDataDataSource
     
+    private var continuation: AsyncStream<[Person]>.Continuation?
+    private(set) lazy var personsStream: AsyncStream<[Person]> = {
+        AsyncStream { continuation in
+            self.continuation = continuation
+        }
+    }()
+    
     init(dataSource: CoreDataDataSource) {
         self.dataSource = dataSource
+    }
+    
+    private func publishPersons() async {
+        do {
+            let persons = try await getAll()
+            continuation?.yield(persons)
+        } catch {
+            continuation?.yield([])
+        }
     }
     
     func add(person: Person) async throws -> Person {
         let request = InsertRequest<Person> { context in
             try person.insert(into: context)
         }
-        return try await dataSource.performBackground(request)
+        let result = try await dataSource.performBackground(request)
+        await publishPersons()
+        return result
     }
     
     func getAll() async throws -> [Person] {
@@ -41,6 +59,7 @@ class PersonDataRepository: PersonRepository {
     func remove(byEmail email: String) async throws {
         let request = DeletePersonByEmailRequest(email: email)
         try await dataSource.performBackground(request)
+        await publishPersons()
     }
     
     func remove(emails: [String]) async throws {
@@ -48,5 +67,6 @@ class PersonDataRepository: PersonRepository {
         fetchRequest.predicate = NSPredicate(format: "email IN %@", emails)
         let request = BatchDeleteRequest(request: fetchRequest)
         try await dataSource.performBackground(request)
+        await publishPersons()
     }
 }
