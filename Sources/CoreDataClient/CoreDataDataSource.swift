@@ -7,7 +7,7 @@
 
 import CoreData
 
-public protocol CoreDataProtocol {
+public protocol CoreDataProtocol: Sendable {
     func perform<Request: CoreDataRequestProtocol>(
         _ request: Request
     ) async throws -> Request.Response
@@ -17,7 +17,7 @@ public protocol CoreDataProtocol {
     ) async throws -> Request.Response
 }
 
-public final class CoreDataDataSource: CoreDataProtocol {
+public final class CoreDataDataSource: CoreDataProtocol, @unchecked Sendable {
     private let persistentStore: PersistentStoreProtocol
     
     public init(persistentStore: PersistentStoreProtocol) {
